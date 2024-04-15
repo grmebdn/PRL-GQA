@@ -7,7 +7,7 @@ from torch.utils.data import Dataset, DataLoader
 import torch.optim as optim
 esp = 1e-8
 
-def correct_num(dista, distb):    # 该函数可以换成计算out值>0.5的概率
+def correct_num(dista, distb):    
     margin = 0
     pred = dista - distb - margin
     return (pred > 0).sum()*1.0
@@ -44,20 +44,13 @@ class LossFunc(nn.Module):
         self.highhinge = myhinge(margin2)
         self.lamda = lamda
 
-
-    # def forward(self,p,g):
-    #     g = g.view(-1, 1)
-    #     p = p.view(-1, 1)
-    #     loss_Fidelity = 1 - (torch.sqrt(p * g + esp) + torch.sqrt((1 - p) * (1 - g) + esp))
-    #     #Hinge_loss = torch.max(0,margin-(x1-x2))
-    #     return torch.mean(loss_Fidelity)
     def forward(self,dist1,dist2,out,label):
         loss_cross = self.crossloss(out,label)
         loss_low = self.lowhinge(dist1,dist2,label)
         loss_high = self.highhinge(dist1,dist2,label)
         loss_std = loss_cross + self.lamda*(loss_high + loss_low)
         return torch.mean(loss_std)
-def train(train_loader,net, criterion, optimizer,epoch,_f_loss=None):   # 使用时
+def train(train_loader,net, criterion, optimizer,epoch,_f_loss=None):  
     loss=0
     accs = Ratio()
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
@@ -66,21 +59,13 @@ def train(train_loader,net, criterion, optimizer,epoch,_f_loss=None):   # 使用
         data1 = data1.to(device)
         data2 = data2.to(device)
         label = label.to(device)
-        data1 = torch.transpose(data1, -1, -2)  # dataloader中数据为Bxrandom_sizexpatch_sizex3
+        data1 = torch.transpose(data1, -1, -2) 
         data2 = torch.transpose(data2, -1, -2)
-        dist1, dist2, out = net(data1,data2)     # 输出量在GPU上
+        dist1, dist2, out = net(data1,data2)    
         num = correct_num(dist1, dist2)
         num =num.cpu()
 
         loss_net = criterion(out, label)
-
-        #hingloss
-        #loss_net = criterion(dist1,dist2, label)
-
-        #loss_net = criterion(dist1, dist2,out,label)
-
-
-
 
         loss+=loss_net.cpu().detach().item()
         accs.update(num,data1.size()[0])
@@ -92,7 +77,6 @@ def train(train_loader,net, criterion, optimizer,epoch,_f_loss=None):   # 使用
             if _f_loss is not None:
                 _f_loss.write(str(loss/50)+"\n")
             loss=0
-    # acc=test(train_loader,net,criterion,epoch)
     print('\ntrain set: epoch: {:d}, Accuracy: {:.2f}%\n'.format(
         epoch, 100. * accs.ratio))
 
@@ -108,17 +92,13 @@ def test(test_loader, net, criterion,epoch,_f_acc=None,mode=1):
         data1 = data1.to(device)
         data2 = data2.to(device)
         label = label.to(device)
-        data1 = torch.transpose(data1, -1, -2)  # dataloader中数据为Bxrandom_sizexpatch_sizex3
+        data1 = torch.transpose(data1, -1, -2)
         data2 = torch.transpose(data2, -1, -2)
         dist1, dist2, out = net(data1,data2)
         num = correct_num(dist1, dist2)
         num = num.cpu()
         loss_net = criterion(out, label)
 
-        # hingloss
-        #loss_net = criterion(dist1, dist2, label)
-
-        #loss_net = criterion(dist1, dist2, out, label)
 
         loss.update(loss_net.cpu().detach().item()*data1.size()[0], data1.size()[0])
         accs.update(num, data1.size()[0])
@@ -153,11 +133,7 @@ def main():
 
     net = double_fusion()
     net = net.to(device)
-    # criterion = nn.MSELoss()
     criterion = nn.BCELoss()
-    #criterion =LossFunc(0.8,0.1,0.9)
-    # criterion = torch.nn.MarginRankingLoss(margin=0.2)
-    # optimizer =optim.SGD(net.parameters(), lr=0.0000001, momentum=0.9)
     optimizer = optim.Adam(net.parameters(), lr=0.00001, betas=(0.9, 0.999), eps=1e-08, weight_decay=0, amsgrad=False)
     StepLR = optim.lr_scheduler.StepLR(optimizer, step_size=2, gamma=0.8)
     epochs = 20

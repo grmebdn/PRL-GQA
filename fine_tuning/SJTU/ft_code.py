@@ -14,10 +14,7 @@ import numpy as np
 
 
 def pc_normalize(pc):
-    '''
-    :param pc:B X N x D
-    :return:  零均值化 B x N x D
-    '''
+
     centroid = np.mean(pc, axis=1)  # B X D
     B = pc.shape[0]
     data =np.zeros(pc.shape,dtype=pc.dtype)
@@ -26,10 +23,8 @@ def pc_normalize(pc):
     m = np.max(np.sqrt(np.sum(pc ** 2, axis=-1)),axis=-1)  # (B,)
     for batch in range(B):
         pc[batch] =data[batch]/m[batch]
-     # 归一化到【-1 1】之间
     return pc
 
-#处理SJTU-PCA数据集
 
 def data_handle():
     dataFile = './sjtu-PCA/Final_MOS.mat'
@@ -44,10 +39,10 @@ def data_handle():
         dict[name_list[i]]= i
     size = len(model)
     ratio_for_train=0.8
-    for i in range(0, int(size * ratio_for_train)):   # 训练集
+    for i in range(0, int(size * ratio_for_train)):  
         dir_path=model_path+'/'+model[i]
         distortion = os.listdir(dir_path)
-        for j in distortion:     # 数据读取往往不是按照顺序
+        for j in distortion:  
             mpath = dir_path + '/' + j
             num = len(model[i])
             index = j[num+1:-4]
@@ -74,7 +69,7 @@ def data_handle():
     for i in range(int(size * ratio_for_train), size):
         dir_path=model_path+'/'+model[i]
         distortion = os.listdir(dir_path)
-        for j in distortion:     # 数据读取往往不是按照顺序
+        for j in distortion:  
             mpath = dir_path + '/' + j
             num = len(model[i])
             index = j[num+1:-4]
@@ -100,11 +95,11 @@ def data_handle():
             pair_txt_test.write('%s %f %s\n' % (mpath, data['Final_MOS'][index][dict[model[i]]],type))
 
 
-def read_min_withtype(root_txt_path):   # text格式是路径+分数+失真类型
+def read_min_withtype(root_txt_path): 
     assert root_txt_path.endswith('.txt')
     path_list, score_list ,type_list= [], [],[]
     with open(root_txt_path, "r", encoding='utf-8') as f_txt:
-        lines = f_txt.readlines()  # 读取全部内容 ，并以列表方式返回
+        lines = f_txt.readlines() 
         for line in lines:
             path, score,type = line.strip().split(' ')
             score = float(score)
@@ -113,7 +108,7 @@ def read_min_withtype(root_txt_path):   # text格式是路径+分数+失真类�
             type_list.append(type)
     return path_list, score_list,type_list
 
-class SJTUDataset(Dataset):     # SJTU    catergory用于是否返回样本中的类别信息以便后期统计各类型下的性能
+class SJTUDataset(Dataset):   
     def __init__(self, root_txt_path,catergory=False):
         super(SJTUDataset, self).__init__()
         assert isinstance(root_txt_path, str) and root_txt_path.endswith('.txt')
@@ -121,25 +116,19 @@ class SJTUDataset(Dataset):     # SJTU    catergory用于是否返回样本中�
         self.path_list, self.score_list,self.type_list = read_min_withtype(root_txt_path)
 
     def __getitem__(self, index):
-        '''
-
-        :param index: 样本序号
-        :return:  random_sizexpatch_sizex3
-        '''
         path = self.path_list[index]
         score = self.score_list[index]
-        model = load_ply(path).reshape(1, -1, 3)  # ply模型    BxNx3  B=1
+        model = load_ply(path).reshape(1, -1, 3) 
         model = pc_normalize(model)
 
         model = torch.from_numpy(model)
-        centroids_index = farthest_point_sample(model, 64)  # 每次采样点数
-        centroids = index_points(model, centroids_index)  # 确定采样中兴点坐标
-        # radius采样
+        centroids_index = farthest_point_sample(model, 64) 
+        centroids = index_points(model, centroids_index)
         result1 = query_ball_point(0.2, 512, model, centroids)
         result1_np = result1.numpy()
         B, S, patch_size = result1_np.shape
         result1_value = np.zeros((B, S, patch_size, 3), dtype=np.float)
-        model1_numpy = model.numpy()  # 此部分代码基于numpy运算，故转换
+        model1_numpy = model.numpy() 
         for patch in range(S):
             patch_index = result1_np[:, patch, :]  # [B patch_size]
             value = index_to_points(model1_numpy, patch_index)  # [B patch_size C]
@@ -147,11 +136,8 @@ class SJTUDataset(Dataset):     # SJTU    catergory用于是否返回样本中�
                 result1_value[batch][patch] = value[batch]  # B X S X patch_size X C
         data1_tensor = torch.tensor(result1_value, dtype=torch.float)
 
-        # 相对坐标转换
         data1_tensor = relative_cordinate(data1_tensor, centroids)
         data1_tensor = data1_tensor[0]  # S X patch_size X C
-        # data_patch1=pc_normalize(data_patch1)
-        # data_patch2=pc_normalize(data_patch2)  #   坐标零均值化
         label_tensor = torch.tensor(score, dtype=torch.float)
         label_tensor = label_tensor.unsqueeze(-1)
         if self.category:
@@ -165,9 +151,6 @@ class SJTUDataset(Dataset):     # SJTU    catergory用于是否返回样本中�
 
 
 
-
-
-# 二次微调训练
 def test(test_loader, net, criterion):
     loss = 0
     num = 0
@@ -177,7 +160,7 @@ def test(test_loader, net, criterion):
     mos=[]
     for idx, (data1,label) in enumerate(test_loader):
         data1 = data1.to(device)
-        data1 = torch.transpose(data1, -1, -2)  # dataloader中数据为Bxrandom_sizexpatch_sizex3
+        data1 = torch.transpose(data1, -1, -2) 
         label = label.to(device)
         out = net(data1)
         predict_mos.append(out.cpu().item())
@@ -216,7 +199,7 @@ def train_and_test():
         # loss = 0
         for idx, (data1,label) in enumerate(trainloader):
             data1 = data1.to(device)
-            data1 = torch.transpose(data1, -1, -2)  # dataloader中数据为Bxrandom_sizexpatch_sizex3
+            data1 = torch.transpose(data1, -1, -2) 
             label = label.to(device)
             out = score_Net(data1)
             loss_net = criterion(out, label)
@@ -225,12 +208,6 @@ def train_and_test():
             loss_net.backward()
             optimizer.step()
             print(loss_net.cpu().detach().item())
-            # if idx % 5 == 4:
-            #     print("loss:" + str(loss / 5))
-            #     if f_loss is not None:
-            #         f_loss.write(str(loss /5) + "\n")
-            #     loss = 0
-            # acc=test(train_loader,net,criterion,epoch)
         test_loss= test(testloader,score_Net,criterion)
         if test_loss < best_loss:
             best_loss = test_loss
@@ -242,7 +219,4 @@ def train_and_test():
     f_loss.close()
 
 if __name__ == '__main__':
-    #data_handle()
     train_and_test()
-    # path ='./SJTU_train.txt'
-    # read_min_withtype(path)

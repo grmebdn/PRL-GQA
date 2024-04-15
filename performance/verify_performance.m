@@ -13,9 +13,9 @@ beta(4) = 0.1;
 beta(5) = 0.1;
 
 %fitting a curve using the data
-[bayta,ehat,J] = nlinfit(predict_mos,mos,@logistic,beta);%多元非线性回归，1为自变量，2为因变量，3为函数模型，4为要求系数的初值
+[bayta,ehat,J] = nlinfit(predict_mos,mos,@logistic,beta);
 %given a ssim value, predict the correspoing mos (ypre) using the fitted curve
-[ypre,junk] = nlpredci(@logistic,predict_mos,bayta,ehat,J);%非线性模型置信区间预测
+[ypre,junk] = nlpredci(@logistic,predict_mos,bayta,ehat,J);
 % ypre = predict(logistic,fsimValues,bayta,ehat,J);
 
 N_false=0;

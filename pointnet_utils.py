@@ -106,22 +106,22 @@ class PointNetEncoder(nn.Module):
         if self.feature_transform:
             self.fstn = STNkd(k=64)
 
-    def forward(self, x):  # 输入B x D X N
+    def forward(self, x): 
         '''
 
         :param x:  B x D X N
         :return:  B x 1024
         '''
         B, D, N = x.size()
-        trans = self.stn(x)   # 空间位置变换操作Tnet
-        x = x.transpose(2, 1)  # 旋转为B x N X D
-        if D > 3:     # 每个点维度大于3
+        trans = self.stn(x)  
+        x = x.transpose(2, 1) 
+        if D > 3:   
             feature = x[:, :, 3:]
-            x = x[:, :, :3]    # 将坐标特征和其他特征分开
-        x = torch.bmm(x, trans)   #矩阵乘法，不是对应位置相乘
+            x = x[:, :, :3]   
+        x = torch.bmm(x, trans)  
         if D > 3:
-            x = torch.cat([x, feature], dim=2)    # 扩充最后一维
-        x = x.transpose(2, 1)     # 再转换为B x D X N
+            x = torch.cat([x, feature], dim=2)   
+        x = x.transpose(2, 1)    
         x = F.relu(self.bn1(self.conv1(x)))
         if self.feature_transform:
             trans_feat = self.fstn(x)

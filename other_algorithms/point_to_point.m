@@ -1,5 +1,5 @@
 function [asBA, asAB, asSym] = point_to_point(A, B, ERRORTYPE)
-if nargin < 2         %nargin探测函数参数个数
+if nargin < 2        
     error('Too few input arguments.');
 elseif nargin==2
     ERRORTYPE = 'mean';
@@ -18,7 +18,7 @@ P_square=Px+Py+Pz;
 [n1, ~] = knnsearch(A.Location, B.Location);  
 as_BA=sqrt(sum((A.Location(n1,:)-B.Location).^2,2));  % 
 if strcmp(ERRORTYPE, 'mean')
-    asBA = nanmean(real(as_BA));  %real 复数实值部分
+    asBA = nanmean(real(as_BA));
 elseif strcmp(ERRORTYPE, 'min')
     asBA = nanmin(real(as_BA));
 elseif strcmp(ERRORTYPE, 'max')

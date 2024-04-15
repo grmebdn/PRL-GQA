@@ -1,13 +1,5 @@
 # -*- coding: utf-8 -*-
-"""
-@author lizheng
-@date  10:23
-@packageName
-@className cal_linear_index
-@software PyCharm
-@version 1.0.0
-@describe TODO
-"""
+
 import os
 from coefficient_calu import corr_value
 import numpy as np

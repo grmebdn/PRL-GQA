@@ -14,7 +14,7 @@ A new rank dataset named `PRLD` is constructed, which includes 150 reference poi
 
 ![image](./fig/PRLD.png)
 
-Our `PRLD` dataset is released at https://pan.baidu.com/s/1eD_1178tdh_Fg3VuAGiubA?pwd=8jt4.
+Our `PRLD` dataset will be available soon.
 
 
 # Run Program
@@ -32,5 +32,4 @@ Verify the performance:
 ```she	
 python perfermance_validate.py
 ```
-
 

@@ -13,10 +13,6 @@ import matplotlib.pyplot as plt
 from tqdm import tqdm
 
 
-
-
-
-# 测试参数下，不同patchs 时测试集上的分类正确率
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 save_model = torch.load('new_params.pth',map_location='cpu')
 
@@ -53,7 +49,7 @@ for patchs in patch_number:
     noise4_accuracy = []
     for nums in range(repeat_number):
         accs2 = Ratio()
-        loss2 = Ratio()  # 测试集
+        loss2 = Ratio()  
         octree_acc=  Ratio()
         grid_acc =  Ratio()
         random_acc =  Ratio()
@@ -64,15 +60,14 @@ for patchs in patch_number:
         for index in range(size):
             pbar.update()
             path1 = sample_path1_list[index]
-            path2 = sample_path2_list[index]  # 样本路径
+            path2 = sample_path2_list[index]  
             #label = labels_list[index]
-            model1 = load_ply(path1).reshape(1, -1, 3)  # ply模型    BxNx3  B=1
+            model1 = load_ply(path1).reshape(1, -1, 3)  
             model2 = load_ply(path2).reshape(1, -1, 3)
             model1 = torch.from_numpy(model1)
             model2 = torch.from_numpy(model2)
-            centroids_index = farthest_point_sample(model1, patchs)  # 每次采样点数
-            centroids = index_points(model1, centroids_index)  # 确定采样中兴点坐标
-            # radius采样
+            centroids_index = farthest_point_sample(model1, patchs)  
+            centroids = index_points(model1, centroids_index)  
             result1 = query_ball_point(0.2, 516, model1, centroids)
             result2 = query_ball_point(0.2, 516, model2, centroids)  # B x S x nsample
             result1_np = result1.numpy()
@@ -80,13 +75,13 @@ for patchs in patch_number:
             B, S, patch_size = result1_np.shape
             result1_value = np.zeros((B, S, patch_size, 3), dtype=float)
             result2_value = np.zeros((B, S, patch_size, 3), dtype=float)
-            model1_numpy = model1.numpy()  # 此部分代码基于numpy运算，故转换
+            model1_numpy = model1.numpy()  
             for patch in range(S):
                 patch_index = result1_np[:, patch, :]  # [B patch_size]
                 value = index_to_points(model1_numpy, patch_index)  # [B patch_size C]
                 for batch in range(B):
                     result1_value[batch][patch] = value[batch]  # B X S X patch_size X C
-            model2_numpy = model2.numpy()  # 此部分代码基于numpy运算，故转换
+            model2_numpy = model2.numpy()  
             for patch in range(S):
                 patch_index = result2_np[:, patch, :]  # [B patch_size]
                 value = index_to_points(model2_numpy, patch_index)  # [B patch_size C]
@@ -95,29 +90,16 @@ for patchs in patch_number:
             data1_tensor = torch.tensor(result1_value, dtype=torch.float)
             data2_tensor = torch.tensor(result2_value, dtype=torch.float)
 
-            # 相对坐标转换
             data1_tensor = relative_cordinate(data1_tensor, centroids)
             data2_tensor = relative_cordinate(data2_tensor, centroids)
-            # #data1_tensor = data1_tensor[0]
-            # #data2_tensor = data2_tensor[0]  # S X patch_size X C
-            # data_patch1=pc_normalize(data_patch1)
-            # data_patch2=pc_normalize(data_patch2)  #   坐标零均值化
-            #label_tensor = torch.tensor(label, dtype=torch.float)
-            #label_tensor = label_tensor.unsqueeze(-1)
-            # if self.category:
-            #     return data1_tensor, data2_tensor, label_tensor, self.distortion_type[index]
-            # else:
-            #     return data1_tensor, data2_tensor, label_tensor
             data1 = data1_tensor.to(device)    # B x S X patch_size X C
             data2 = data2_tensor.to(device)
             #label = label_tensor.to(device)
-            data1 = torch.transpose(data1, -1, -2)  # dataloader中数据为Bxrandom_sizexpatch_sizex3
+            data1 = torch.transpose(data1, -1, -2)  
             data2 = torch.transpose(data2, -1, -2)
             dist1, dist2, out = Net(data1, data2)
             num = correct_num(dist1, dist2)
             num = num.cpu()
-            #loss_net = criterion(out, label)
-            #loss2.update(loss_net.cpu().detach().item() * data1.size()[0], data1.size()[0])
             accs2.update(num, data1.size()[0])
             if distortion_type[index] == 'OctreeCom':
                 octree_acc.update(num, data1.size()[0])

@@ -35,7 +35,7 @@ function [asBA, asAB, asSym] = angularSimilarity(A, B, ERRORTYPE)
 
 
 
-if nargin < 2         %nargin探测函数参数个数
+if nargin < 2        
     error('Too few input arguments.');
 elseif nargin==2
     ERRORTYPE = 'mean';
@@ -53,18 +53,17 @@ end
 
 if isempty(A.Normal) || isempty(B.Normal)
     error('No normal vectors found in input point cloud(s).');
-end   %法线和坐标不能为空
+end   
 
 Px=(max([A.Location(:,1);B.Location(:,1)])-min([A.Location(:,1);B.Location(:,1)]))*(max([A.Location(:,1);B.Location(:,1)])-min([A.Location(:,1);B.Location(:,1)]));
 Py=(max([A.Location(:,2);B.Location(:,2)])-min([A.Location(:,2);B.Location(:,2)]))*(max([A.Location(:,2);B.Location(:,2)])-min([A.Location(:,2);B.Location(:,2)]));
 Pz=(max([A.Location(:,3);B.Location(:,3)])-min([A.Location(:,3);B.Location(:,3)]))*(max([A.Location(:,3);B.Location(:,3)])-min([A.Location(:,3);B.Location(:,3)]));
 P_square=Px+Py+Pz;
-% Set A as the reference. Loop over B and find nearest neighbor in A
-[n1, ~] = knnsearch(A.Location, B.Location);          %Knnsearch（x,y)返回x中每一个y点的最近邻，返回参数1为X中对应序号，参数2为最近邻距离，K默认为1
+[n1, ~] = knnsearch(A.Location, B.Location);         
 as_BA = 1 - 2*acos(abs( sum(A.Normal(n1,:).*B.Normal,2)./(sqrt(sum(A.Normal(n1,:).^2,2)).*sqrt(sum(B.Normal.^2,2))) ))/pi;
 
 if strcmp(ERRORTYPE, 'mean')
-    asBA = nanmean(real(as_BA));  %real 复数实值部分
+    asBA = nanmean(real(as_BA)); 
 elseif strcmp(ERRORTYPE, 'min')
     asBA = nanmin(real(as_BA));
 elseif strcmp(ERRORTYPE, 'max')

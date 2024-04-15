@@ -1,6 +1,5 @@
 function [asBA, asAB, asSym] = point_to_plane(A, B, ERRORTYPE)
-if nargin < 2         %nargin探测函数参数个数
-    error('Too few input arguments.');
+if nargin < 2        
 elseif nargin==2
     ERRORTYPE = 'mean';
 elseif nargin>2
@@ -17,7 +16,7 @@ end
 
 if isempty(A.Normal) || isempty(B.Normal)
     error('No normal vectors found in input point cloud(s).');
-end   %法线和坐标不能为空
+end  
 Px=(max([A.Location(:,1);B.Location(:,1)])-min([A.Location(:,1);B.Location(:,1)]))*(max([A.Location(:,1);B.Location(:,1)])-min([A.Location(:,1);B.Location(:,1)]));
 Py=(max([A.Location(:,2);B.Location(:,2)])-min([A.Location(:,2);B.Location(:,2)]))*(max([A.Location(:,2);B.Location(:,2)])-min([A.Location(:,2);B.Location(:,2)]));
 Pz=(max([A.Location(:,3);B.Location(:,3)])-min([A.Location(:,3);B.Location(:,3)]))*(max([A.Location(:,3);B.Location(:,3)])-min([A.Location(:,3);B.Location(:,3)]));
@@ -26,7 +25,7 @@ P_square=Px+Py+Pz;
 [n1, ~] = knnsearch(A.Location, B.Location); 
 as_BA=abs(sum(A.Normal(n1,:).*(B.Location-A.Location(n1,:)),2));
 if strcmp(ERRORTYPE, 'mean')
-    asBA = nanmean(real(as_BA));  %real 复数实值部分
+    asBA = nanmean(real(as_BA)); 
 elseif strcmp(ERRORTYPE, 'min')
     asBA = nanmin(real(as_BA));
 elseif strcmp(ERRORTYPE, 'max')

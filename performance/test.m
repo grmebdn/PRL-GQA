@@ -19,5 +19,5 @@ end
 a=[1:1:4,9:1:12,17:1:20,25:1:28,33:1:36];
 b=[5:1:8,13:1:16,21:1:24,29:1:32,37:1:40];
 [srocc3,krocc3,plcc3,rmse3,or3] = verify_performance(MOS,result);
-[srocc2,krocc2,plcc2,rmse2,or2] = verify_performance(MOS(a),result(a));  %计算八叉树压缩的系数
-[srocc1,krocc1,plcc1,rmse1,or1] = verify_performance(MOS(b),result(b));  %计算高斯噪声样本的系数
+[srocc2,krocc2,plcc2,rmse2,or2] = verify_performance(MOS(a),result(a));  
+[srocc1,krocc1,plcc1,rmse1,or1] = verify_performance(MOS(b),result(b)); 

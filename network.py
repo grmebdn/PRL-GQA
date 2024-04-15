@@ -113,10 +113,10 @@ class weight_score(nn.Module):
         :return: B x 1
         '''
         B,patch_number,D,patch_size = x.size()
-        x = x.view(-1,D,patch_size)    # pointnet网络输入只能接受3维    (B x patch_number) x D x patch_size
+        x = x.view(-1,D,patch_size)    
         fea_vector= self.feature(x)    # (B x patch_number) x 1024
         score = self.score_mlp(fea_vector)   # (B x patch_number) x 1
-        weight = self.weight_mlp(fea_vector)  # (B x patch_number) x 1  线性层只能接受2维
+        weight = self.weight_mlp(fea_vector) 
         score = score.view(B,patch_number)
         weight = weight.view(B,patch_number)   # B x patch_number
         product_val = torch.mul(score,weight)
@@ -124,8 +124,7 @@ class weight_score(nn.Module):
         norm_val = torch.sum(weight,dim=-1)
         final_score = torch.div(product_val_sum,norm_val)
         final_score = final_score.view(B,-1)   # B x 1
-        # final_score = torch.mean(score,dim=-1)
-        # final_score = final_score.view(B, -1)
+
         return final_score
 
     def param_init(self,param_Enconder=None,param_MLP1=None,param_MLP2=None):
@@ -154,8 +153,7 @@ class double_fusion(nn.Module):
         '''
         score1 = self.score_compute(x1)
         score2 = self.score_compute(x2)
-        # if np.any(np.isnan(score1.cpu().detach().numpy())) or np.any(np.isnan(score1.cpu().detach().numpy())):
-        #     print("score is nan")
+
         x = self.FusionLayer(score1,score2)     # B x 1
         return score1,score2,x
     def param_init(self,pth):
@@ -163,18 +161,6 @@ class double_fusion(nn.Module):
 
 
 if __name__ == '__main__':
-    # device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-    # print(device)
-    # a=torch.randn(3,5).to(device)
-    # print(a.device)
-    # print(a)
-    # model=double_fusion()
-    #
-    # for param_tensor in model.state_dict():
-    #     print(param_tensor, "\t", model.state_dict()[param_tensor].size())
-    # torch.save(model.state_dict(),'params.pth')
-    # pth = torch.load('params.pth')
-    # print(pth['score_compute.feature.stn.conv1.weight'])
 
     test=  np.random.randn(3,5)
 

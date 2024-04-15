@@ -73,9 +73,9 @@ class DGCNN(nn.Module):
         self.bn2 = nn.BatchNorm2d(64)
         self.bn3 = nn.BatchNorm2d(128)
         self.bn4 = nn.BatchNorm2d(256)
-        self.bn5 = nn.BatchNorm1d(1024)#默认为1024
+        self.bn5 = nn.BatchNorm1d(1024)
 
-        self.conv1 = nn.Sequential(nn.Conv2d(6, 64, kernel_size=1, bias=False),#bias查看卷积层的权重和偏置
+        self.conv1 = nn.Sequential(nn.Conv2d(6, 64, kernel_size=1, bias=False),
                                    self.bn1,
                                    nn.LeakyReLU(negative_slope=0.2))
         self.conv2 = nn.Sequential(nn.Conv2d(64*2, 64, kernel_size=1, bias=False),

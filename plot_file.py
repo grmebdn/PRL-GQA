@@ -1,10 +1,6 @@
 import matplotlib.pyplot as plt
 
-'''
-@author leon
-@desc 画图可视化
-@date 2021/12
-'''
+
 lossfile_path = './loss.txt'
 accfile_path ='./ave_acc.txt'
 data_loss = []
